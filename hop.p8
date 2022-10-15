@@ -8,10 +8,11 @@ player_vars=
     location_y = 20.0,
     velocity_x=0.0,
     velocity_y=0.0,
-    player_speed = 40.0,
+    player_speed = 4000.0,
     player_width = 10.0,
     player_height = 10.0,
-    player_status = 0 -- 0 = grounded, 1 = jumping
+    player_status = 0, -- 0 = grounded, 1 = jumping
+    timer = 0
 }
 
 -->8
@@ -43,8 +44,65 @@ acceleration = vector_scale(acceleration,player_vars.player_speed)
 player_vars.velocity_x += acceleration.x * (1.0/60.0);
 player_vars.velocity_y += acceleration.y * (1.0/60.0);
 
-player_vars.location_x += player_vars.velocity_x * (1.0/60.0);
-player_vars.location_y += player_vars.velocity_y * (1.0/60.0);
+movement_x = player_vars.velocity_x * (1.0/60.0);
+if(player_vars.location_x + movement_x < 0) then
+    movement_x = 0;
+end
+if(player_vars.location_x + movement_x > 117) then
+    movement_x = 0;
+end
+player_vars.location_x += movement_x;
+
+movement_y = player_vars.velocity_y * (1.0/60.0);
+if(player_vars.location_y + movement_y < 0) then
+    movement_y = 0;
+end
+if(player_vars.location_y + movement_y > 117) then
+    movement_y = 0;
+end
+player_vars.location_y += movement_y;
+
+if (btn(4,1) and player_vars.timer == 0) then
+        player_vars.timer = player_vars.timer + 1;
+		player_vars.player_status = 1;
+else
+        player_vars.player_status = 0;
+end
+
+--friction based on halflife/pm_chared.c from https://github.com/ValveSoftware/halflife
+if (player_vars.timer <= 0) then 
+		speed = vector_length(vector(player_vars.velocity_x,player_vars.velocity_y)) 
+        friction = 4;
+        drop = 0;
+        control = 0;
+        if (speed < 100) then
+            control = 100;
+        else
+            control = speed;
+        end
+        drop += (control*friction*(1/60));
+        newspeed = speed - drop;
+        if (newspeed < 0) then
+            newspeed = 0;
+        end
+        if (newspeed != speed) then
+            newspeed /= speed;
+        end
+        player_vars.velocity_x *= newspeed;
+        player_vars.velocity_y *= newspeed;
+        minus = vector_scale(vector(player_vars.velocity_x,player_vars.velocity_y),(1-newspeed));
+        player_vars.velocity_x -= minus.x;
+        player_vars.velocity_y -= minus.y;
+else
+        player_vars.timer = player_vars.timer + 1;
+        if (player_vars.timer > 5) then
+            player_vars.timer = -180;
+        end
+end
+
+if (player_vars.timer < 0) then
+            player_vars.timer = player_vars.timer + 1;
+end
 
 end
 -->8
@@ -52,9 +110,18 @@ end
 function _draw()
 
 cls()
-spr( 1, player_vars.location_x, player_vars.location_y)
+if (player_vars.player_status == 1) then 
+		spr( 2, player_vars.location_x, player_vars.location_y)
+else
+        spr( 1, player_vars.location_x, player_vars.location_y)
+end
+
 print('E/S/D/F to move',2,2,7)
-print(vector_length(vector(player_vars.velocity_x,player_vars.velocity_y)),2+6,2+6,8)
+if (player_vars.timer < 0) then
+            print(player_vars.timer,2+6,2+6,8)
+else
+            print('left shift to dash',2+6,2+6,12)
+end
 
 end
 
@@ -66,6 +133,10 @@ function vector(sx,sy)
         x=(sx and sx or 0),
         y=(sy and sy or 0),
     }
+end
+
+function vector_inner(v1,v2)
+    return ( (v1.x*v2.x) + (v1.y*v2.y) )
 end
 
 function vector_add(v1,v2)
@@ -102,11 +173,11 @@ function vector_dist(v1,v2)
     return x+y
 end
 __gfx__
-00000000cccccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000cccccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00700700cccccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00077000cccccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00077000cccccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00700700cccccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000cccccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-00000000cccccccc0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000cccccccc8888888800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000cccccccc8888888800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00700700cccccccc8888888800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00077000cccccccc8888888800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00077000cccccccc8888888800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00700700cccccccc8888888800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000cccccccc8888888800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+00000000cccccccc8888888800000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
