@@ -36,4 +36,5 @@ function play_intro()
         flip()
         intro_timer = intro_timer + 1
     end
+    animation_data_once = {}
 end
