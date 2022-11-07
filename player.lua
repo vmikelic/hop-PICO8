@@ -13,7 +13,9 @@ player_vars=
     player_height = 4.0,
     player_status = 0, -- 0 = grounded, 1 = jumping, 2 = slash
     slash_time = 0,
-    slash_speed = 0
+    slash_speed = 0,
+    invuln_time = 0,
+    slash_hitbox = {}
 }
 
 function player_level_collision()
@@ -115,16 +117,60 @@ function handle_slash()
         player_vars.slash_time = player_vars.slash_time + 1
     end
 
+    if(player_vars.invuln_time > 0) then
+        player_vars.invuln_time = player_vars.invuln_time - 1
+    end
+
+    if(player_vars.slash_time > -40) then
+        slash_hitbox = {}
+    end
+
     if(player_vars.player_status != 2) then
         return
     end
 
     if(mouse_left_hold == false) then
-        add_vel = vector_scale(vector_norm(vector((mouse_x-1)-player_vars.location_x,(mouse_y-1)-player_vars.location_y)),player_vars.slash_speed+135) 
+        player_vars.invuln_time = 20
+        mouse_vector = vector_norm(vector((mouse_x-1)-player_vars.location_x,(mouse_y-1)-player_vars.location_y))
+        add_vel = vector_scale(mouse_vector,player_vars.slash_speed+135)
+        x_begin = player_vars.location_x-2
+        y_begin = player_vars.location_y-2
+        x_end = x_begin
+        y_end = y_begin
+        slash_animation = {10,15}
+        for x = 1,(player_vars.slash_speed+135)/20,1 do
+            animate_once(x_end,y_end,slash_animation,1,1,3,1)
+            add(slash_hitbox,{x=x_end,y=y_end})
+            x_end = x_end + (mouse_vector.x*8)
+            y_end = y_end + (mouse_vector.y*8)
+            slash_animation = {}
+            for z = 1,x+1,1 do
+                add(slash_animation,15,z)
+            end
+            add(slash_animation,10,x+1)
+        end
+        slash_vector = vector(x_end-x_begin,y_end-y_begin)
+
         player_vars.velocity_x = add_vel.x;
         player_vars.velocity_y = add_vel.y
         player_vars.player_status = 0;
         player_vars.slash_time = -60;
+    end
+end
+
+function player_enemy_collision()
+    for i in all(enemy_list) do
+        if(i.pos_y+8 > player_vars.location_y) then
+            if(i.pos_x+8 > player_vars.location_x) then
+                if(i.pos_y+1 < player_vars.location_y+4) then
+                    if(i.pos_x+1 < player_vars.location_x+4) then
+                            if(player_vars.invuln_time == 0) then
+                                lost = true
+                            end
+                    end
+                end
+            end
+        end
     end
 end
 

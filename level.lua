@@ -8,12 +8,14 @@ function reset_level()
     player_vars.velocity_x = 0
     player_vars.velocity_y = 0
     occupied_slots = {}
+    enemy_list = {}
+    num_of_enemies = 0
     make_level()
 end
 
 function make_level()
     obstacles_created = 0
-    num_of_obstacles = 10
+    num_of_obstacles = 7
     while(obstacles_created < num_of_obstacles) do
         obstacle_slot = {x=flr(rnd(7)),y=flr(rnd(7))}
         add_obstacle = true
@@ -33,13 +35,6 @@ end
 function draw_level()
     animate_once(0,52,{8},1,3,1,1)
     animate_once(128-8,52,{9},1,3,1,1)
-    ok_x = 0
-    ok_y = 0
-    for y = 16,127,16 do 
-        for x = 16,127,16 do
-          pset(x, y, 8)
-        end
-    end
 
     for i in all(occupied_slots) do
         sspr( 11*8, 0, 8, 8, 11+i.x*16, 11+i.y*16,10,10)
