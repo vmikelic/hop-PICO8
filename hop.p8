@@ -20,7 +20,7 @@ lost = false
 
 palt(0,false)
 palt(10,true)
---play_intro()
+play_intro()
 init_mouse()
 reset_level()
 
@@ -70,6 +70,7 @@ if(enemies_killed >= 50) then
     draw_mouse()
     if(mouse_left_init) then
         enemies_killed = 0
+        mouse_left_init = false
         reset_level()
     end
     return
@@ -83,6 +84,7 @@ if(lost == true) then
     if(mouse_left_init) then
         lost = false
         enemies_killed = 0
+        mouse_left_init = false
         reset_level()
     end
     return
