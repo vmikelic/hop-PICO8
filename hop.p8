@@ -14,7 +14,7 @@ __lua__
 
 delta_t = 1.0/60.0;
 
---play_intro()
+play_intro()
 init_mouse()
 
 -->8
