@@ -22,16 +22,19 @@ palt(0,false)
 palt(10,true)
 --play_intro()
 init_mouse()
+reset_level()
 
 -->8
 -- update
 function _update60()
 
 if(enemies_killed >= 50) then
+    update_mouse()
     return
 end
 
 if(lost == true) then
+    update_mouse()
     return
 end
 
@@ -61,12 +64,27 @@ end
 function _draw()
 
 if(enemies_killed >= 50) then
+    cls(1)
     print('WIN',128/2-5,128/2-2,11)
+    print('left click to restart',128/2-5-35,128/2-2+6,11)
+    draw_mouse()
+    if(mouse_left_init) then
+        enemies_killed = 0
+        reset_level()
+    end
     return
 end
 
 if(lost == true) then
+    cls(1)
     print('LOSE',128/2-5,128/2-2,8)
+    print('left click to restart',128/2-5-35,128/2-2+6,8)
+    draw_mouse()
+    if(mouse_left_init) then
+        lost = false
+        enemies_killed = 0
+        reset_level()
+    end
     return
 end
 
