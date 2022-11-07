@@ -44,6 +44,7 @@ print('left click to slash',2+6,127-10,4)
 print('Hold left shift to hop',2+6,127-4,3)
 handle_animations()
 draw_mouse()
+player_check_goal()
 
 end
 

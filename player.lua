@@ -144,3 +144,13 @@ function draw_player()
         animate_once(player_vars.location_x,player_vars.location_y,{5},1,1,1,1)
     end
 end
+
+function player_check_goal()
+    if(player_vars.location_x+4 > 121) then
+        if(player_vars.location_y+4 > 53) then
+            if(player_vars.location_y < 53+23) then
+                reset_level()
+            end
+        end
+    end
+end
