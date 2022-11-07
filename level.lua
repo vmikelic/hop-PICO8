@@ -41,18 +41,7 @@ function draw_level()
         end
     end
 
-    for y = 16,127,16 do 
-        for x = 16,127,16 do
-          for i in all(occupied_slots) do
-            if(ok_x == i.x and ok_y == i.y) then
-                pset(x, y, 7)
-                break
-            end
-          end
-          ok_x = ok_x + 1
-        end
-        ok_y = ok_y + 1
-        ok_x = 0
+    for i in all(occupied_slots) do
+        sspr( 11*8, 0, 8, 8, 11+i.x*16, 11+i.y*16,10,10)
     end
-
 end

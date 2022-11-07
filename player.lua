@@ -4,6 +4,8 @@ player_vars=
 {
     location_x = 1.0,
     location_y = 62.0,
+    delta_x = 0,
+    delta_y = 0,
     velocity_x=0.0,
     velocity_y=0.0,
     player_speed = 1200.0/scale_,
@@ -13,6 +15,100 @@ player_vars=
     slash_time = 0,
     slash_speed = 0
 }
+
+function player_level_collision()
+    y_basis = vector(0,1)
+    x_basis = vector(1,0)
+    movement_unit = vector_norm(vector(player_vars.delta_x,player_vars.delta_y))
+    t_min = 0
+    t_max = 99999999
+    side_hit = 0
+    for i in all(occupied_slots) do
+        box_x = 12+i.x*16
+        box_y = 12+i.y*16
+        if(box_y+9 > player_vars.location_y+player_vars.delta_y) then
+            if(box_x+9 > player_vars.location_x+player_vars.delta_x) then
+                if(box_y < player_vars.location_y+player_vars.delta_y+4) then
+                    if(box_x < player_vars.location_x+player_vars.delta_x+4) then
+                        delta = vector((box_x+4.5) - (player_vars.location_x+2),(box_y+4.5) - (player_vars.location_y+2))             
+                        E = vector_inner(x_basis,delta) --based on https://www.opengl-tutorial.org/miscellaneous/clicking-on-objects/picking-with-custom-ray-obb-function/
+                        F = vector_inner(movement_unit,x_basis)
+                        T1 = (E-6.5)/F
+                        T2 = (E+6.5)/F
+                        if (T1>T2) then
+                            w=T1
+                            T1=T2
+                            T2=w
+                        end
+                        if (T1>=t_min) then
+                            t_min = T1
+                            if(F<0) then
+                                side_hit = bor(side_hit,0x2)
+                                side_hit = bor(side_hit,0x4) --xaxis is min bit
+                            elseif(F>0) then
+                                side_hit = bor(side_hit,0x1)
+                                side_hit = bor(side_hit,0x4) --xaxis is min bit
+                            end
+                        end
+                        if (T2<t_max) then
+                            t_max = T2
+                        end
+                        E = vector_inner(y_basis,delta)
+                        F = vector_inner(movement_unit,y_basis)
+                        T1 = (E-6.5)/F
+                        T2 = (E+6.5)/F
+                        if (T1>T2) then
+                            w=T1
+                            T1=T2
+                            T2=w
+                        end
+                        if (T1>=t_min) then
+                            t_min = T1
+                            if(F<0) then
+                                side_hit = bor(side_hit,0x10)
+                                side_hit = bor(side_hit,0x20)
+                                side_hit = band(side_hit,~0x4) 
+                            elseif(F>0) then
+                                side_hit = bor(side_hit,0x8)
+                                side_hit = bor(side_hit,0x20) 
+                                side_hit = band(side_hit,~0x4)
+                            end
+                        end
+                        if (T2<t_max) then
+                            t_max = T2
+                        end
+
+                        reflection_normal = vector(0,0)
+
+                        if(band(side_hit,0x4) != 0) then
+                            if(band(side_hit,0x1) != 0) then--left
+                                reflection_normal  = vector(-1,0)
+                            elseif(band(side_hit,0x2) != 0) then--right
+                                reflection_normal  = vector(1,0)
+                            end
+                        elseif(band(side_hit,0x20) != 0) then
+                            if(band(side_hit,0x8) != 0) then--top
+                                reflection_normal  = vector(0,1)
+                            elseif(band(side_hit,0x10) != 0) then--bottom
+                                reflection_normal  = vector(0,-1)
+                            end
+                        end
+
+                        velocity_adjust = vector_scale(reflection_normal,vector_inner(vector(player_vars.velocity_x,player_vars.velocity_y),reflection_normal));
+                        player_vars.velocity_x = player_vars.velocity_x - velocity_adjust.x
+                        player_vars.velocity_y = player_vars.velocity_y - velocity_adjust.y
+
+                        movement_adjust = vector_scale(reflection_normal,vector_inner(vector(player_vars.delta_x,player_vars.delta_y),reflection_normal));
+                        vector_add(movement_adjust,vector_scale(reflection_normal,1.01))
+
+                        player_vars.delta_x = player_vars.delta_x - movement_adjust.x
+                        player_vars.delta_y = player_vars.delta_y - movement_adjust.y
+                    end
+                end
+            end
+        end
+    end
+end
 
 function handle_slash()
     if(player_vars.slash_time < 0) then
@@ -113,28 +209,31 @@ function update_player_movement()
     end
 
     --move x / collision
-    movement_x = player_vars.velocity_x * (delta_t);
-    if(player_vars.location_x + movement_x < 0) then
+    player_vars.delta_x = player_vars.velocity_x * (delta_t);
+    if(player_vars.location_x + player_vars.delta_x < 0) then
         player_vars.velocity_x = 0;
-        movement_x = 0;
+        player_vars.delta_x = 0;
     end
-    if(player_vars.location_x + movement_x > 125) then
+    if(player_vars.location_x + player_vars.delta_x > 125) then
         player_vars.velocity_x = 0;
-        movement_x = 0;
+        player_vars.delta_x = 0;
     end
-    player_vars.location_x += movement_x;
-
+    
     --move y / collision
-    movement_y = player_vars.velocity_y * (delta_t);
-    if(player_vars.location_y + movement_y < 0) then
+    player_vars.delta_y = player_vars.velocity_y * (delta_t);
+    if(player_vars.location_y + player_vars.delta_y < 0) then
         player_vars.velocity_y = 0;
-        movement_y = 0;
+        player_vars.delta_y = 0;
     end
-    if(player_vars.location_y + movement_y > 125) then
+    if(player_vars.location_y + player_vars.delta_y > 125) then
         player_vars.velocity_y = 0;
-        movement_y = 0;
+        player_vars.delta_y = 0;
     end
-    player_vars.location_y += movement_y;
+
+    player_level_collision()
+
+    player_vars.location_x += player_vars.delta_x;
+    player_vars.location_y += player_vars.delta_y;
 end
 
 function draw_player()
