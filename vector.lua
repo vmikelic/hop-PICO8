@@ -33,10 +33,10 @@ end
 
 function vector_norm(v)
     local mag=vector_length(v)
-    if mag>1 then
+    if mag != 0 then
         return vector(v.x/mag,v.y/mag)
     end
-    return v
+    return vector(0,0)
 end
 
 function vector_dist(v1,v2)

@@ -12,6 +12,7 @@ player_vars=
     player_width = 4.0,
     player_height = 4.0,
     player_status = 0, -- 0 = grounded, 1 = jumping, 2 = slash
+    slash_cooldown = 0,
     slash_time = 0,
     slash_speed = 0,
     invuln_time = 0,
@@ -113,6 +114,10 @@ function player_level_collision()
 end
 
 function handle_slash()
+    if(player_vars.slash_cooldown < 0) then
+        player_vars.slash_cooldown = player_vars.slash_cooldown + (vector_length(vector(player_vars.velocity_x,player_vars.velocity_y))/52)
+    end
+    
     if(player_vars.slash_time < 0) then
         player_vars.slash_time = player_vars.slash_time + 1
     end
@@ -130,7 +135,7 @@ function handle_slash()
     end
 
     if(mouse_left_hold == false) then
-        player_vars.invuln_time = 20
+        player_vars.invuln_time = 40
         mouse_vector = vector_norm(vector((mouse_x-1)-player_vars.location_x,(mouse_y-1)-player_vars.location_y))
         add_vel = vector_scale(mouse_vector,player_vars.slash_speed+135)
         x_begin = player_vars.location_x-2
@@ -139,7 +144,9 @@ function handle_slash()
         y_end = y_begin
         slash_animation = {10,15}
         for x = 1,(player_vars.slash_speed+135)/20,1 do
-            animate_once(x_end,y_end,slash_animation,1,1,3,1)
+            --animate_once(x_end,y_end,slash_animation,1,1,3,1)
+            animate_once(x_end,y_end,{32,33,34,35,36,37,38},1,1,3,1)
+            animate_once(x_end,y_end,{10,15,10,15},1,1,3,2)
             add(slash_hitbox,{x=x_end,y=y_end})
             x_end = x_end + (mouse_vector.x*8)
             y_end = y_end + (mouse_vector.y*8)
@@ -155,6 +162,7 @@ function handle_slash()
         player_vars.velocity_y = add_vel.y
         player_vars.player_status = 0;
         player_vars.slash_time = -60;
+        player_vars.slash_cooldown = -240;
     end
 end
 
@@ -164,7 +172,7 @@ function player_enemy_collision()
             if(i.pos_x+8 > player_vars.location_x) then
                 if(i.pos_y+1 < player_vars.location_y+4) then
                     if(i.pos_x+1 < player_vars.location_x+4) then
-                            if(player_vars.invuln_time == 0) then
+                            if(player_vars.invuln_time == 0 and i.timer >= 0) then
                                 lost = true
                             end
                     end
@@ -294,7 +302,12 @@ function player_check_goal()
     if(player_vars.location_x+4 > 121) then
         if(player_vars.location_y+4 > 53) then
             if(player_vars.location_y < 53+23) then
-                reset_level()
+                if(enemies_killed >= enemy_requirement) then
+                    levels_cleared = levels_cleared + 1
+                    spawn_rate -= 20
+                    num_of_obstacles += 1
+                    reset_level()
+                end
             end
         end
     end
