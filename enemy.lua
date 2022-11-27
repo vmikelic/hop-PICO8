@@ -77,6 +77,12 @@ function update_enemy()
         end
         move_vector = vector_norm(move_vector)
         move_vector = vector_scale(move_vector,.6)
+
+        if(abs(move_vector.x) > 3 or abs(move_vector.y) > 3) then
+            move_vector.x = 0
+            move_vector.y = 0
+        end
+
         i.pos_x = i.pos_x+move_vector.x+(sin(i.enemy_bounce)/10)
         i.pos_y = i.pos_y+move_vector.y+(sin(i.enemy_bounce)/10)
         i.enemy_bounce = i.enemy_bounce + 0.01

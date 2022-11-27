@@ -19,6 +19,18 @@ player_vars=
     slash_hitbox = {}
 }
 
+function reset_player()
+    player_vars.location_x = 1.0
+    player_vars.location_y = 62.0
+    player_vars.velocity_x=0.0
+    player_vars.velocity_y=0.0
+    player_vars.slash_cooldown = 0
+    player_vars.slash_time = 0
+    player_vars.slash_speed = 0
+    player_vars.invuln_time = 0
+    player_vars.slash_hitbox = {}
+end
+
 function player_level_collision()
     y_basis = vector(0,1)
     x_basis = vector(1,0)

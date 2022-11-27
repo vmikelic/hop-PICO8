@@ -11,6 +11,8 @@ function reset_level()
     enemy_list = {}
     num_of_enemies = 0
     enemies_killed = 0
+    animation_data_once = {}
+    reset_player()
     make_level()
 end
 
