@@ -147,6 +147,7 @@ function handle_slash()
     end
 
     if(mouse_left_hold == false) then
+        sfx(21)
         player_vars.invuln_time = 40
         mouse_vector = vector_norm(vector((mouse_x-1)-player_vars.location_x,(mouse_y-1)-player_vars.location_y))
         add_vel = vector_scale(mouse_vector,player_vars.slash_speed+135)
@@ -185,6 +186,19 @@ function player_enemy_collision()
                 if(i.pos_y+1 < player_vars.location_y+4) then
                     if(i.pos_x+1 < player_vars.location_x+4) then
                             if(player_vars.invuln_time == 0 and i.timer >= 0) then
+                                lost = true
+                            end
+                    end
+                end
+            end
+        end
+    end
+    if(boss_thing == 1) then
+        if(boss_pos.y+24 > player_vars.location_y) then
+            if(boss_pos.x+24 > player_vars.location_x) then
+                if(boss_pos.y < player_vars.location_y+4) then
+                    if(boss_pos.x < player_vars.location_x+4) then
+                            if(player_vars.invuln_time == 0) then
                                 lost = true
                             end
                     end
@@ -311,12 +325,17 @@ function draw_player()
 end
 
 function player_check_goal()
+    if(boss_thing == 1) then
+        return
+    end
     if(player_vars.location_x+4 > 121) then
         if(player_vars.location_y+4 > 53) then
             if(player_vars.location_y < 53+23) then
                 if(enemies_killed >= enemy_requirement) then
                     levels_cleared = levels_cleared + 1
-                    spawn_rate -= 20
+                    if(levels_cleared < 6) then
+                        spawn_rate -= 20
+                    end
                     num_of_obstacles += 1
                     reset_level()
                 end
